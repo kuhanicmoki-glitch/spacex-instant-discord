@@ -40,14 +40,17 @@ async def check_filings():
     url = f"https://data.sec.gov/submissions/CIK{CIK}.json"
     try:
         resp = requests.get(url, headers=headers, timeout=15)
+        resp.raise_for_status()
         data = resp.json()
         recent = data.get('filings', {}).get('recent', {})
         
         for i in range(min(5, len(recent.get('accessionNumber', [])))):
             acc_no = recent['accessionNumber'][i]
+            
             if last_seen is None:
                 last_seen = acc_no
                 return
+                
             if acc_no == last_seen:
                 break
                 
@@ -71,6 +74,6 @@ async def check_filings():
             last_seen = recent['accessionNumber'][0]
             break
     except Exception as e:
-        print("Error:", e)
+        print(f"Error checking filings: {e}")
 
 bot.run(DISCORD_TOKEN)
